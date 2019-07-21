@@ -1,0 +1,22 @@
+#!/usr/bin/env php
+<?php
+declare(strict_types=1);
+namespace Soatok\Valence\CommandLine;
+
+require_once dirname(__DIR__) . '/autoload-cli.php';
+/**
+ * @var \Slim\Container $container
+ * @var \ParagonIE\EasyDB\EasyDB $db
+ */
+
+foreach (glob(APP_ROOT . '/sql/*.sql') as $sql) {
+    $contents = file_get_contents($sql);
+    $pieces = explode(';', $contents);
+    foreach ($pieces as $piece) {
+        $piece = trim($piece);
+        if (empty($piece)) {
+            continue;
+        }
+        $db->exec($piece);
+    }
+}

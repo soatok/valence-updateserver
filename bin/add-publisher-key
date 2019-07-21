@@ -1,0 +1,49 @@
+#!/usr/bin/env php
+<?php
+declare(strict_types=1);
+namespace Soatok\Valence\CommandLine;
+
+use Soatok\DholeCrypto\Key\AsymmetricPublicKey;
+use Soatok\DholeCrypto\Keyring;
+
+require_once dirname(__DIR__) . '/autoload-cli.php';
+/**
+ * @var \Slim\Container $container
+ * @var \ParagonIE\EasyDB\EasyDB $db
+ */
+
+if ($argc < 3) {
+    echo 'Usage: add-publisher-key [id] [publickey]', PHP_EOL;
+    exit(0);
+}
+$id = (int) $argv[1];
+$publicKey = $argv[2];
+if ($id < 1) {
+    echo 'Invalid publisher ID', PHP_EOL;
+    exit(255);
+}
+
+$keyring = new Keyring();
+try {
+    $loaded = $keyring->load($publicKey);
+    if (!($loaded instanceof AsymmetricPublicKey)) {
+        throw new \TypeError('Not a valid public key');
+    }
+} catch (\Throwable $ex) {
+    echo $ex->getMessage(), PHP_EOL;
+    exit(127);
+}
+$db->beginTransaction();
+$db->insert(
+    'valence_publisher_publickeys',
+    [
+        'publisher' => $id,
+        'publickey' => $publicKey
+    ]
+);
+if (!$db->commit()) {
+    echo 'Could not save public key to database.', PHP_EOL;
+    exit(63);
+}
+echo 'OK.', PHP_EOL;
+exit(0);

@@ -1,0 +1,43 @@
+#!/usr/bin/env php
+<?php
+declare(strict_types=1);
+namespace Soatok\Valence\CommandLine;
+
+use ParagonIE\ConstantTime\Base64UrlSafe;
+use Soatok\Valence\TokenHash;
+
+require_once dirname(__DIR__) . '/autoload-cli.php';
+/**
+ * @var \Slim\Container $container
+ * @var \ParagonIE\EasyDB\EasyDB $db
+ */
+if ($argc < 2) {
+    echo 'Usage: create-publisher [name]', PHP_EOL;
+    exit(0);
+}
+
+$db->beginTransaction();
+$publisherId = $db->insertGet(
+    'valence_publishers',
+    [
+        'name' => $argv[1]
+    ],
+    'publisherid'
+);
+
+$token = Base64UrlSafe::encodeUnpadded(random_bytes(64));
+[$selector, $hashed] = TokenHash::split($token);
+$db->insert(
+    'valence_publisher_tokens',
+    [
+        'publisher' => $publisherId,
+        'selector' => $selector,
+        'validator' => $hashed
+    ]
+);
+$db->commit();
+echo json_encode(
+        ['token' => $token, 'publisher-id' => $publisherId],
+        JSON_PRETTY_PRINT
+    ), PHP_EOL;
+exit(0);

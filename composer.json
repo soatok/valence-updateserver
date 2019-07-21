@@ -1,0 +1,47 @@
+{
+    "name": "soatok/valence-update-server",
+    "description": "Update Server for Valence projects",
+    "type": "project",
+    "keywords": ["Slim Framework", "microservice"],
+    "homepage": "http://github.com/soatok/valence-updateserver",
+    "license": "ISC",
+    "authors": [
+        {
+            "name": "Soatok Dreamseeker",
+            "email": "soatok.dhole@gmail.com",
+            "homepage": "https://soatok.com"
+        }
+    ],
+    "require": {
+        "php": "^7.3",
+        "ext-json": "*",
+        "ext-pdo": "*",
+        "slim/slim": "^3.1",
+        "slim/php-view": "^2.0",
+        "soatok/anthrokit": "^0|^1",
+        "soatok/dhole-cryptography": "^0|^1",
+        "monolog/monolog": "^1.17"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^8",
+        "vimeo/psalm": "^3"
+    },
+    "autoload": {
+        "psr-4": {
+            "Soatok\\Valence\\": "src/Valence/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Soatok\\Valence\\Tests\\": "tests/"
+        }
+    },
+    "config": {
+        "process-timeout": 0,
+        "sort-packages": true
+    },
+    "scripts": {
+        "start": "php -S localhost:8880 -t public",
+        "test": "phpunit"
+    }
+}

@@ -1,0 +1,87 @@
+#!/usr/bin/env php
+<?php
+declare(strict_types=1);
+namespace Soatok\Valence\CommandLine;
+
+use ParagonIE\ConstantTime\Base64UrlSafe;
+use Soatok\Valence\TokenHash;
+
+require_once dirname(__DIR__) . '/autoload-cli.php';
+/**
+ * @var \Slim\Container $container
+ * @var \ParagonIE\EasyDB\EasyDB $db
+ */
+if (in_array('--help', $argv, true)) {
+    echo 'Usage: grant-access [optional token]', PHP_EOL;
+    exit(0);
+}
+
+if ($argc > 1) {
+    $token = $argv[1];
+    [$selector, $hashed] = TokenHash::split($token);
+    $accessId = $db->cell(
+        "SELECT accessid FROM valence_access WHERE selector = ? AND validator = ?",
+        $selector,
+        $hashed
+    );
+    if (empty($accessId)) {
+        echo 'Invalid access token.', PHP_EOL;
+        exit(1);
+    }
+} else {
+    $token = Base64UrlSafe::encodeUnpadded(random_bytes(64));
+    [$selector, $hashed] = TokenHash::split($token);
+    $accessId = $db->insertGet(
+        'valence_access',
+        [
+            'selector' => $selector,
+            'validator' => $hashed,
+            'comment' => 'Created via bin/grant-access'
+        ],
+        'accessid'
+    );
+}
+
+$channels = [];
+foreach ($db->run("SELECT * FROM valence_project_channels ORDER BY value ASC, name ASC") as $row) {
+    $channels[$row['name']] = [
+        'id' => $row['channelid'],
+        'value' => $row['value']
+    ];
+}
+
+do {
+    $project = prompt('Please enter the name of the project: ');
+    if (empty($project)) {
+        break;
+    }
+    $projectId = $db->cell("SELECT projectid FROM valence_projects WHERE name = ?", $project);
+    if (empty($projectId)) {
+        echo 'Invalid project: ' . $project . PHP_EOL;
+        continue;
+    }
+    foreach ($channels as $chan) {
+        echo "\t{$chan['name']} (Channel value: {$chan['value']}\n";
+    }
+
+    $channel = prompt(
+        'Which is the highest channel this token be given access to? (Enter name)'
+    );
+    if (empty($channel)) {
+        echo 'Invalid channel name: ' . $channel . PHP_EOL;
+        continue;
+    }
+    $val = $channels[$channel]['value'];
+
+    $db->insert(
+        'valence_project_access',
+        [
+            'accessid' => $accessId,
+            'chanelmax' => $val
+        ]
+    );
+} while (true);
+
+echo 'Access token:', PHP_EOL;
+echo $token, PHP_EOL;
+exit(0);
