@@ -59,6 +59,7 @@ class Updates extends Endpoint
             if ($update['channel_value'] === 0) {
                 $publish[] = [
                     'channel' => $update['channel'],
+                    'version' => $update['version'],
                     'created' => (new \DateTime($update['created']))
                         ->format(\DateTime::ISO8601),
                     'publisher' => $update['publisher'],
@@ -91,6 +92,7 @@ class Updates extends Endpoint
             if ($found) {
                 $publish[] = [
                     'channel' => $update['channel'],
+                    'version' => $update['version'],
                     'created' => (new \DateTime($update['created']))
                         ->format(\DateTime::ISO8601),
                     'publisher' => $update['publisher'],

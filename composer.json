@@ -41,7 +41,7 @@
         "sort-packages": true
     },
     "scripts": {
-        "start": "php -S localhost:8880 -t public",
+        "start": "php -S 127.0.0.1:8880 -t public",
         "test": "phpunit"
     }
 }

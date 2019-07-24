@@ -22,6 +22,7 @@ CREATE TABLE IF NOT EXISTS valence_project_updates (
     channel BIGINT NULL REFERENCES valence_project_channels (channelid),
     publicid TEXT UNIQUE,
     signature TEXT,
+    version TEXT,
     filepath TEXT,
     created TIMESTAMP DEFAULT NOW()
 );
