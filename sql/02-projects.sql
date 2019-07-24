@@ -24,5 +24,6 @@ CREATE TABLE IF NOT EXISTS valence_project_updates (
     signature TEXT,
     version TEXT,
     filepath TEXT,
-    created TIMESTAMP DEFAULT NOW()
+    created TIMESTAMP DEFAULT NOW(),
+    UNIQUE(project, channel, version)
 );
