@@ -48,6 +48,7 @@ class Projects extends Splice
                 'project' => $projectId,
                 'pubickey' => $publicKeyId,
                 'channel' => $channelId,
+                'version' => $post['version'],
                 'signature' => $post['signature'],
                 'filepath' => $filepath,
                 'publicid' => $publicId

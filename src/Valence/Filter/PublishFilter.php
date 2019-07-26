@@ -13,9 +13,10 @@ class PublishFilter extends InputFilterContainer
 {
     public function __construct()
     {
-        $this->addFilter('channel', new StringFilter())
+        $this->addFilter('channel', (new StringFilter())->setDefault('public'))
             ->addFilter('project', new StringFilter())
             ->addFilter('publickey', new StringFilter())
-            ->addFilter('signature', new StringFilter());
+            ->addFilter('signature', new StringFilter())
+            ->addFilter('version', new StringFilter());
     }
 }

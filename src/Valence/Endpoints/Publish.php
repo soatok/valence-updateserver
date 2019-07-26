@@ -178,6 +178,9 @@ class Publish extends Endpoint
                 $filepath,
                 $post
             );
+            return $this->json([
+                'message' => 'Update released successfully.'
+            ]);
         } catch (\Throwable $ex) {
             return $this->json(['error' => $ex->getMessage()], 500);
         }
