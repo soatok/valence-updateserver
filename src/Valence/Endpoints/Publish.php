@@ -7,7 +7,7 @@ use Psr\Http\Message\ResponseInterface;
 use Slim\Container;
 use Slim\Http\StatusCode;
 use Soatok\AnthroKit\Endpoint;
-use Soatok\DholeCrypto\Asymmetric;
+use Soatok\DholeCrypto\AsymmetricFile;
 use Soatok\DholeCrypto\Key\AsymmetricPublicKey;
 use Soatok\DholeCrypto\Keyring;
 use Soatok\Valence\AccessTrait;
@@ -62,25 +62,6 @@ class Publish extends Endpoint
             $random = bin2hex(random_bytes(32));
         } while (file_exists($dir . '/' . $random));
         return implode('/', [$a, $b, $random]);
-    }
-
-    /**
-     * @param string $signature
-     * @param AsymmetricPublicKey $publicKey
-     * @param string $filePath
-     * @return bool
-     * @throws \SodiumException
-     */
-    public function verifyFileSignature(
-        string $signature,
-        AsymmetricPublicKey $publicKey,
-        string $filePath
-    ): bool {
-        return Asymmetric::verify(
-            file_get_contents($filePath),
-            $publicKey,
-            $signature
-        );
     }
 
     /**
@@ -143,7 +124,8 @@ class Publish extends Endpoint
                 StatusCode::HTTP_FORBIDDEN
             );
         }
-        if (!$this->verifyFileSignature(
+
+        if (! AsymmetricFile::verify(
             $post['signature'],
             $publicKey,
             $_FILES['file']['tmp_name']
@@ -184,9 +166,5 @@ class Publish extends Endpoint
         } catch (\Throwable $ex) {
             return $this->json(['error' => $ex->getMessage()], 500);
         }
-        return $this->json(
-            ['error' => 'Could not upload file.'],
-            StatusCode::HTTP_INTERNAL_SERVER_ERROR
-        );
     }
 }
