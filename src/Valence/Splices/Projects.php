@@ -2,8 +2,12 @@
 declare(strict_types=1);
 namespace Soatok\Valence\Splices;
 
+use Interop\Container\Exception\ContainerException;
 use ParagonIE\ConstantTime\Base32;
+use ParagonIE\Quill\Quill;
+use Slim\Container;
 use Soatok\AnthroKit\Splice;
+use Soatok\DholeCrypto\SymmetricFile;
 
 /**
  * Class Products
@@ -11,6 +15,20 @@ use Soatok\AnthroKit\Splice;
  */
 class Projects extends Splice
 {
+    /** @var Quill $quill */
+    protected $quill;
+
+    /**
+     * Projects constructor.
+     * @param Container $container
+     * @throws ContainerException
+     */
+    public function __construct(Container $container)
+    {
+        parent::__construct($container);
+        $this->quill = $container['quill'];
+    }
+
     /**
      * @param int $projectId
      * @param int $channelId
@@ -54,6 +72,16 @@ class Projects extends Splice
                 'publicid' => $publicId
             ]
         );
+        $this->writeAndParseChronicle([
+            'action' => 'RELEASE-UPDATE',
+            'project' => $post['project'],
+            'channel' => $post['channel'],
+            'version' => $post['version'],
+            'publickey' => $post['publickey'],
+            'signature' => $post['signature'],
+            'filehash' => SymmetricFile::hash($filepath),
+            'server-time' => (new \DateTime())->format(\DateTime::ATOM)
+        ]);
         return $this->db->commit();
     }
 
@@ -191,5 +219,18 @@ class Projects extends Splice
             return [];
         }
         return $update;
+    }
+
+    /**
+     * @param array $data
+     * @return array
+     * @throws \ParagonIE\Sapient\Exception\HeaderMissingException
+     * @throws \ParagonIE\Sapient\Exception\InvalidMessageException
+     */
+    public function writeAndParseChronicle(array $data): array
+    {
+        $response = $this->quill->write(json_encode($data));
+        $json = (string) $response->getBody();
+        return json_decode($json, true);
     }
 }

@@ -15,5 +15,8 @@ CREATE TABLE IF NOT EXISTS valence_publisher_tokens (
 CREATE TABLE IF NOT EXISTS valence_publisher_publickeys (
     publickeyid BIGSERIAL PRIMARY KEY,
     publisher BIGINT REFERENCES valence_publishers(publisherid),
+    chronicle_publish TEXT,
+    chronicle_revoke TEXT NULL,
+    revoked BOOLEAN DEFAULT FALSE,
     publickey TEXT
 );

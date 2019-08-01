@@ -3,6 +3,13 @@ $default = [
     'displayErrorDetails' => true, // set to false in production
     'addContentLengthHeader' => false, // Allow the web server to send the content-length header
 
+    'quill' => [
+        'url' => '',
+        'client-id' => '',
+        'server-public-key' => '',
+        'client-secret-key' => ''
+    ],
+
     // Renderer settings
     'renderer' => [
         'template_path' => __DIR__ . '/../templates/',
