@@ -62,6 +62,7 @@ class PublicKey extends Endpoint
         }
         if ($this->publishers->addPublicKey($publisher, $post['publickey'])) {
             return $this->json([
+                'message' => 'Public key added successfully',
                 'publisher' => $this->publishers->getById($publisher)
             ]);
         }
@@ -95,6 +96,7 @@ class PublicKey extends Endpoint
         }
         if ($this->publishers->revokePublicKey($publisher, $post['publickey'])) {
             return $this->json([
+                'message' => 'Public key revoked successfully',
                 'publisher' => $this->publishers->getById($publisher)
             ]);
         }
