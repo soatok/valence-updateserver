@@ -1,0 +1,18 @@
+#!/usr/bin/env php
+<?php
+declare(strict_types=1);
+namespace Soatok\Valence\CommandLine;
+
+use ParagonIE\Sapient\CryptographyKeys\SigningSecretKey;
+
+require_once dirname(__DIR__) . '/autoload-cli.php';
+$sk = SigningSecretKey::generate();
+
+file_put_contents(
+    APP_ROOT . '/local/chronicle-client-secret-key',
+    $sk->getString()
+);
+file_put_contents(
+    APP_ROOT . '/local/chronicle-client-public-key',
+    $sk->getPublicKey()->getString()
+);

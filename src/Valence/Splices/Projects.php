@@ -8,7 +8,7 @@ use ParagonIE\Quill\Quill;
 use Slim\Container;
 use Soatok\AnthroKit\Splice;
 use Soatok\DholeCrypto\SymmetricFile;
-use Soatok\Valence\Endpoints\ChronicleTrait;
+use Soatok\Valence\ChronicleTrait;
 
 /**
  * Class Products

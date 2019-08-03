@@ -5,4 +5,5 @@
 !/files/.gitkeep
 /local/*
 !/local/.gitkeep
+!/local/cacerts/.gitkeep
 /.phpunit.result.cache

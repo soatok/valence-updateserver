@@ -1,6 +1,6 @@
 <?php
 declare(strict_types=1);
-namespace Soatok\Valence\Endpoints;
+namespace Soatok\Valence;
 
 use ParagonIE\Sapient\Exception\{
     HeaderMissingException,
@@ -25,6 +25,9 @@ trait ChronicleTrait
      */
     public function writeAndParseChronicle(array $data): array
     {
+        if (empty($this->quill)) {
+            return [];
+        }
         $response = $this->quill->write(json_encode($data));
         $json = (string) $response->getBody();
         return json_decode($json, true);
