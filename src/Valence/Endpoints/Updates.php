@@ -2,6 +2,7 @@
 declare(strict_types=1);
 namespace Soatok\Valence\Endpoints;
 
+use Interop\Container\Exception\ContainerException;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Slim\Container;
@@ -23,7 +24,7 @@ class Updates extends Endpoint
     /**
      * Download constructor.
      * @param Container $container
-     * @throws \Interop\Container\Exception\ContainerException
+     * @throws ContainerException
      */
     public function __construct(Container $container)
     {
@@ -56,37 +57,26 @@ class Updates extends Endpoint
         $updates = $this->projects->listUpdates($projectName, $channel);
         $publish = [];
         foreach ($updates as $key => $update) {
-            if ($update['channel_value'] === 0) {
-                $publish[] = [
-                    'channel' => $update['channel'],
-                    'version' => $update['version'],
-                    'created' => (new \DateTime($update['created']))
-                        ->format(\DateTime::ISO8601),
-                    'publisher' => $update['publisher'],
-                    'project' => $update['project_name'],
-                    'url' => '/download/' . $update['project_name'] . '/' . $update['publicid']
-                ];
-                continue;
-            }
-            if (!$request->hasHeader('Valence-Access')) {
-                continue;
-            }
-
-            $found = false;
-            // Try up to 8 tokens, if passed along
-            for ($i = 0; $i < 8; ++$i) {
-                $token = $this->extractAccessToken($request, $i);
-                if (!$token) {
-                    // This isn't a valid token.
+            $found = $update['channel_value'] === 0;
+            if (!$found) {
+                if (!$request->hasHeader('Valence-Access')) {
                     continue;
                 }
-                $access = (int) $this->accessCheck($token, (int) $update['project']);
-                if ($access < $update['channel_value']) {
-                    // This token doesn't grant access to this channel.
-                    continue;
+                // Try up to 8 tokens, if passed along
+                for ($i = 0; $i < 8; ++$i) {
+                    $token = $this->extractAccessToken($request, $i);
+                    if (!$token) {
+                        // This isn't a valid token.
+                        continue;
+                    }
+                    $access = (int)$this->accessCheck($token, (int)$update['project']);
+                    if ($access < $update['channel_value']) {
+                        // This token doesn't grant access to this channel.
+                        continue;
+                    }
+                    $found = true;
+                    break;
                 }
-                $found = true;
-                break;
             }
 
             if ($found) {
@@ -97,6 +87,7 @@ class Updates extends Endpoint
                         ->format(\DateTime::ISO8601),
                     'publisher' => $update['publisher'],
                     'project' => $update['project_name'],
+                    'chronicle' => $update['chronicle_publish'],
                     'url' => '/download/' . $update['project_name'] . '/' . $update['publicid']
                 ];
             }

@@ -5,6 +5,10 @@ namespace Soatok\Valence\Splices;
 use Interop\Container\Exception\ContainerException;
 use ParagonIE\ConstantTime\Base32;
 use ParagonIE\Quill\Quill;
+use ParagonIE\Sapient\Exception\{
+    HeaderMissingException,
+    InvalidMessageException
+};
 use Slim\Container;
 use Soatok\AnthroKit\Splice;
 use Soatok\DholeCrypto\SymmetricFile;
@@ -49,8 +53,7 @@ class Projects extends Splice
         $publicKeyId = $this->db->cell(
             "SELECT publickeyid
             FROM valence_publisher_publickeys
-            WHERE publickey = ? AND publisher = ?
-            ",
+            WHERE publickey = ? AND publisher = ?",
             $post['publickey'],
             $publisher
         );
@@ -60,7 +63,7 @@ class Projects extends Splice
             "SELECT count(*) FROM valence_project_updates WHERE publicid = ?",
             $publicId
         ));
-        $this->db->insert(
+        $updateId = $this->db->insertGet(
             'valence_project_updates',
             [
                 'project' => $projectId,
@@ -70,9 +73,10 @@ class Projects extends Splice
                 'signature' => $post['signature'],
                 'filepath' => $filepath,
                 'publicid' => $publicId
-            ]
+            ],
+            'updateid'
         );
-        $this->writeAndParseChronicle([
+        $response = $this->writeAndParseChronicle([
             'action' => 'RELEASE-UPDATE',
             'project' => $post['project'],
             'channel' => $post['channel'],
@@ -82,6 +86,18 @@ class Projects extends Splice
             'filehash' => SymmetricFile::hash($filepath),
             'server-time' => (new \DateTime())->format(\DateTime::ATOM)
         ]);
+        if (empty($response['results']['summaryhash'])) {
+            $this->db->rollBack();
+            return false;
+        }
+        $this->db->update(
+            'valence_project_updates',
+            [
+                'chronicle_publish' =>
+                    $response['results']['summaryhash']
+            ],
+            ['updateid' => $updateId]
+        );
         return $this->db->commit();
     }
 
@@ -100,6 +116,7 @@ class Projects extends Splice
         }
         return (int) $channel;
     }
+
     /**
      * @param string $name
      * @return int|null
@@ -163,7 +180,7 @@ class Projects extends Splice
              JOIN valence_projects vp ON vpu.project = vp.projectid
              JOIN valence_publisher_publickeys pk ON vpu.publickey = pk.publickeyid
              JOIN valence_project_channels vpc on vpu.channel = vpc.channelid
-             WHERE vp.name = ? AND vpc.name = ?
+             WHERE vp.name = ? AND vpc.name = ? AND NOT vpu.revoked
              ORDER BY vpu.created DESC",
                 $name,
                 $channel
@@ -181,7 +198,7 @@ class Projects extends Splice
              JOIN valence_projects vp ON vpu.project = vp.projectid
              JOIN valence_publisher_publickeys pk ON vpu.publickey = pk.publickeyid
              JOIN valence_project_channels vpc on vpu.channel = vpc.channelid
-             WHERE vp.name = ?
+             WHERE vp.name = ? AND NOT vpu.revoked
              ORDER BY vpu.created DESC",
                 $name
             );
@@ -211,7 +228,7 @@ class Projects extends Splice
              JOIN valence_projects vp ON vpu.project = vp.projectid
              JOIN valence_publisher_publickeys pk ON vpu.publickey = pk.publickeyid
              JOIN valence_project_channels vpc on vpu.channel = vpc.channelid
-             WHERE vp.name = ? AND vpu.publicid = ?",
+             WHERE vp.name = ? AND vpu.publicid = ? AND NOT vpu.revoked",
             $projectName,
             $filePublicId
         );
@@ -224,8 +241,8 @@ class Projects extends Splice
     /**
      * @param array $data
      * @return array
-     * @throws \ParagonIE\Sapient\Exception\HeaderMissingException
-     * @throws \ParagonIE\Sapient\Exception\InvalidMessageException
+     * @throws HeaderMissingException
+     * @throws InvalidMessageException
      */
     public function writeAndParseChronicle(array $data): array
     {
