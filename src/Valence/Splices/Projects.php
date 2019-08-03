@@ -5,13 +5,10 @@ namespace Soatok\Valence\Splices;
 use Interop\Container\Exception\ContainerException;
 use ParagonIE\ConstantTime\Base32;
 use ParagonIE\Quill\Quill;
-use ParagonIE\Sapient\Exception\{
-    HeaderMissingException,
-    InvalidMessageException
-};
 use Slim\Container;
 use Soatok\AnthroKit\Splice;
 use Soatok\DholeCrypto\SymmetricFile;
+use Soatok\Valence\Endpoints\ChronicleTrait;
 
 /**
  * Class Products
@@ -19,6 +16,8 @@ use Soatok\DholeCrypto\SymmetricFile;
  */
 class Projects extends Splice
 {
+    use ChronicleTrait;
+
     /** @var Quill $quill */
     protected $quill;
 
@@ -236,18 +235,5 @@ class Projects extends Splice
             return [];
         }
         return $update;
-    }
-
-    /**
-     * @param array $data
-     * @return array
-     * @throws HeaderMissingException
-     * @throws InvalidMessageException
-     */
-    public function writeAndParseChronicle(array $data): array
-    {
-        $response = $this->quill->write(json_encode($data));
-        $json = (string) $response->getBody();
-        return json_decode($json, true);
     }
 }

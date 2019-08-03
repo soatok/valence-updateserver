@@ -2,6 +2,7 @@
 declare(strict_types=1);
 namespace Soatok\Valence\Endpoints;
 
+use Interop\Container\Exception\ContainerException;
 use ParagonIE\ConstantTime\Base64UrlSafe;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -27,8 +28,9 @@ class Download extends Endpoint
 
     /**
      * Download constructor.
+     *
      * @param Container $container
-     * @throws \Interop\Container\Exception\ContainerException
+     * @throws ContainerException
      */
     public function __construct(Container $container)
     {
@@ -92,6 +94,8 @@ class Download extends Endpoint
     }
 
     /**
+     * Serves an actual file to the end user.
+     *
      * @param array $update
      * @return Response
      * @throws \SodiumException
@@ -104,6 +108,10 @@ class Download extends Endpoint
 
             'Content-Type' =>
                 'application/zip',
+
+            // Summary hash from Chronicle (cryptographic ledger):
+            'Chronicle-Summary-Hash' =>
+                $update['chronicle'],
 
             // Hashed so nobody is tempted to just trust what the server sends
             'Valence-Public-Key-ID' =>

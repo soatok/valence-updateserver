@@ -22,6 +22,9 @@ class TokenHash
      * Verifies that you have a valid publisher token. Doesn't validate
      * access controls beyond this.
      *
+     * Stores 'active_publisher_id' in the Slim container for use in further
+     * access controls logic.
+     *
      * @param Container $container
      * @param string $whole
      * @return bool
@@ -50,7 +53,6 @@ class TokenHash
     /**
      * @param EasyDB $db
      * @param string $selector
-     * @param string $table
      * @return array
      */
     public static function fetch(EasyDB $db, string $selector): array
@@ -66,6 +68,10 @@ class TokenHash
     }
 
     /**
+     * Split the given token into the selector (can be leaked through
+     * timing information in database lookups) and the validator
+     * (which does not leak through timing information).
+     *
      * @param string $whole
      * @return array<int, string>
      */
@@ -77,6 +83,8 @@ class TokenHash
     }
 
     /**
+     * Domain-separated hash of the selector and validator.
+     *
      * @param string $selector
      * @param string $validatorSecret
      * @return string
@@ -98,6 +106,9 @@ class TokenHash
     }
 
     /**
+     * Verifies that a selector + validator pair matches the stored
+     * validator hash.
+     *
      * @param string $stored
      * @param string $selector
      * @param string $validatorSecret

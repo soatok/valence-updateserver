@@ -15,6 +15,12 @@ use Slim\Container;
 trait AccessTrait
 {
     /**
+     * Performs two checks:
+     *
+     * 1. Did you access this from an Endpoint wrapped in the appropriate
+     *    Middleware? (This ensures you're a valid publisher.)
+     * 2. Does your publisher account own this project?
+     *
      * @param int $project
      * @return bool
      */
@@ -35,6 +41,8 @@ trait AccessTrait
     }
 
     /**
+     * Extracts the access token from the Valence-Access header.
+     *
      * @param RequestInterface $request
      * @param int $offset
      * @return string|null

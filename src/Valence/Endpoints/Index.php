@@ -12,6 +12,12 @@ use Soatok\AnthroKit\Endpoint;
  */
 class Index extends Endpoint
 {
+    /**
+     * @param RequestInterface $request
+     * @param ResponseInterface|null $response
+     * @param array $routerParams
+     * @return ResponseInterface
+     */
     public function __invoke(
         RequestInterface $request,
         ?ResponseInterface $response = null,

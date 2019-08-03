@@ -22,6 +22,11 @@ use Soatok\Valence\TokenHash;
 class PublisherOnlyMiddleware extends Middleware
 {
     /**
+     * Process the request, then either:
+     *
+     * 1. Proceed with the normal request/response (if authenticated)
+     * 2. Redirect to / (if not authenticated)
+     *
      * @param RequestInterface $request
      * @param ResponseInterface $response
      * @param callable $next
@@ -58,6 +63,8 @@ class PublisherOnlyMiddleware extends Middleware
     }
 
     /**
+     * Is this a valid header?
+     *
      * @param array $headers
      * @return bool
      * @throws \SodiumException

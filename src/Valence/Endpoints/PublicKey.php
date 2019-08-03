@@ -35,11 +35,10 @@ class PublicKey extends Endpoint
     }
 
     /**
-     * @param RequestInterface $request
      * @return ResponseInterface
      * @throws \Exception
      */
-    protected function addPublicKey(RequestInterface $request): ResponseInterface
+    protected function addPublicKey(): ResponseInterface
     {
         $publisher = (int) $this->container['active_publisher_id'];
         if (!$publisher) {
@@ -68,12 +67,12 @@ class PublicKey extends Endpoint
         }
         return $this->redirect('/');
     }
+
     /**
-     * @param RequestInterface $request
      * @return ResponseInterface
      * @throws \Exception
      */
-    protected function revokePublicKey(RequestInterface $request): ResponseInterface
+    protected function revokePublicKey(): ResponseInterface
     {
         $publisher = (int) $this->container['active_publisher_id'];
         if (!$publisher) {
@@ -103,6 +102,13 @@ class PublicKey extends Endpoint
         return $this->redirect('/');
     }
 
+    /**
+     * @param RequestInterface $request
+     * @param ResponseInterface|null $response
+     * @param array $routerParams
+     * @return ResponseInterface
+     * @throws \Exception
+     */
     public function __invoke(
         RequestInterface $request,
         ?ResponseInterface $response = null,
@@ -111,9 +117,9 @@ class PublicKey extends Endpoint
         $action = $routerParams['action'] ?? '';
         switch ($action) {
             case 'add':
-                return $this->addPublicKey($request);
+                return $this->addPublicKey();
             case 'revoke':
-                return $this->revokePublicKey($request);
+                return $this->revokePublicKey();
             default:
                 return $this->redirect('/');
         }

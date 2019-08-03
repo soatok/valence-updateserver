@@ -6,6 +6,7 @@ use Interop\Container\Exception\ContainerException;
 use ParagonIE\Quill\Quill;
 use Slim\Container;
 use Soatok\AnthroKit\Splice;
+use Soatok\Valence\Endpoints\ChronicleTrait;
 
 /**
  * Class Publishers
@@ -13,11 +14,14 @@ use Soatok\AnthroKit\Splice;
  */
 class Publishers extends Splice
 {
+    use ChronicleTrait;
+
     /** @var Quill $quill */
     protected $quill;
 
     /**
      * Publishers constructor.
+     *
      * @param Container $container
      * @throws ContainerException
      */
@@ -28,6 +32,8 @@ class Publishers extends Splice
     }
 
     /**
+     * Get information about a publisher and their non-revoked public keys.
+     *
      * @param int $publisherId
      * @return array
      */
@@ -47,6 +53,9 @@ class Publishers extends Splice
     }
 
     /**
+     * Adds a public key to a publisher. Also updates the cryptographic ledger
+     * and stores the summary hash in the database table.
+     *
      * @param int $publisherId
      * @param string $publicKey
      * @return int|null
@@ -98,6 +107,11 @@ class Publishers extends Splice
     }
 
     /**
+     * Revokes a public key.
+     *
+     * Also updates the cryptographic ledger and stores the summary hash in the
+     * database table.
+     *
      * @param int $publisherId
      * @param string $publicKey
      * @return bool
@@ -147,6 +161,10 @@ class Publishers extends Splice
     }
 
     /**
+     * Does this publisher own this project?
+     *
+     * Useful in more general ACL checks.
+     *
      * @param int $publisherId
      * @param int $project
      * @return bool
@@ -164,6 +182,8 @@ class Publishers extends Splice
     }
 
     /**
+     * Does the given public key belong to this publisher?
+     *
      * @param string $publicKey
      * @param int $publisherId
      * @return bool
@@ -181,6 +201,8 @@ class Publishers extends Splice
     }
 
     /**
+     * Returns a list of projects for a given publisher.
+     *
      * @param string $name
      * @return array
      * @throws \Exception
@@ -206,6 +228,8 @@ class Publishers extends Splice
     }
 
     /**
+     * Returns a list of publishers registered with this update server.
+     *
      * @return array
      */
     public function listPublishers(): array
@@ -218,18 +242,5 @@ class Publishers extends Splice
             return [];
         }
         return $publishers;
-    }
-
-    /**
-     * @param array $data
-     * @return array
-     * @throws \ParagonIE\Sapient\Exception\HeaderMissingException
-     * @throws \ParagonIE\Sapient\Exception\InvalidMessageException
-     */
-    public function writeAndParseChronicle(array $data): array
-    {
-        $response = $this->quill->write(json_encode($data));
-        $json = (string) $response->getBody();
-        return json_decode($json, true);
     }
 }
