@@ -17,13 +17,15 @@ if ($argc < 2) {
 }
 
 $db->beginTransaction();
-$publisherId = $db->insertGet(
-    'valence_publishers',
-    [
-        'name' => $argv[1]
-    ],
-    'publisherid'
+$publisherId = $db->cell(
+    "SELECT publisherid FROM valence_publishers WHERE name = ?",
+    $argv[1]
 );
+if (!$publisherId) {
+    echo 'No publisher found!', PHP_EOL;
+    $db->rollBack();
+    exit(1);
+}
 
 $token = Base64UrlSafe::encodeUnpadded(random_bytes(64));
 [$selector, $validator] = TokenHash::split($token);
@@ -38,7 +40,7 @@ $db->insert(
 );
 $db->commit();
 echo json_encode(
-        ['token' => $token, 'publisher-id' => $publisherId],
-        JSON_PRETTY_PRINT
-    ), PHP_EOL;
+    ['token' => $token, 'publisher-id' => $publisherId],
+    JSON_PRETTY_PRINT
+), PHP_EOL;
 exit(0);
