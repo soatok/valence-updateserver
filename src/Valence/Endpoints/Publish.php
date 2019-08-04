@@ -126,9 +126,9 @@ class Publish extends Endpoint
         }
 
         if (! AsymmetricFile::verify(
-            $post['signature'],
+            $_FILES['file']['tmp_name'],
             $publicKey,
-            $_FILES['file']['tmp_name']
+            $post['signature']
         )) {
             return $this->json(
                 [
@@ -141,7 +141,7 @@ class Publish extends Endpoint
         $filepath = $this->makeFilePath();
         if (!move_uploaded_file(
             $_FILES['file']['tmp_name'],
-            APP_ROOT . '/' . $filepath
+            APP_ROOT . '/files/' . $filepath
         )) {
             return $this->json(
                 ['error' => 'Could not upload file.'],
@@ -152,19 +152,15 @@ class Publish extends Endpoint
         if (empty($channelId)) {
             $channelId = 1;
         }
-        try {
-            $this->projects->appendUpdate(
-                $projectId,
-                $channelId,
-                $publisher,
-                $filepath,
-                $post
-            );
-            return $this->json([
-                'message' => 'Update released successfully.'
-            ]);
-        } catch (\Throwable $ex) {
-            return $this->json(['error' => $ex->getMessage()], 500);
-        }
+        $this->projects->appendUpdate(
+            $projectId,
+            $channelId,
+            $publisher,
+            $filepath,
+            $post
+        );
+        return $this->json([
+            'message' => 'Update released successfully.'
+        ]);
     }
 }

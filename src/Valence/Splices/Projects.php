@@ -4,6 +4,7 @@ namespace Soatok\Valence\Splices;
 
 use Interop\Container\Exception\ContainerException;
 use ParagonIE\ConstantTime\Base32;
+use ParagonIE\ConstantTime\Hex;
 use ParagonIE\Quill\Quill;
 use Slim\Container;
 use Soatok\AnthroKit\Splice;
@@ -66,7 +67,7 @@ class Projects extends Splice
             'valence_project_updates',
             [
                 'project' => $projectId,
-                'pubickey' => $publicKeyId,
+                'publickey' => $publicKeyId,
                 'channel' => $channelId,
                 'version' => $post['version'],
                 'signature' => $post['signature'],
@@ -82,7 +83,9 @@ class Projects extends Splice
             'version' => $post['version'],
             'publickey' => $post['publickey'],
             'signature' => $post['signature'],
-            'filehash' => SymmetricFile::hash($filepath),
+            'filehash' => Hex::encode(
+                SymmetricFile::hash(APP_ROOT . '/files/' . $filepath)
+            ),
             'server-time' => (new \DateTime())->format(\DateTime::ATOM)
         ]);
         if (empty($response['results']['summaryhash'])) {
