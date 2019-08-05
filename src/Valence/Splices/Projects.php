@@ -221,6 +221,7 @@ class Projects extends Splice
         $update = $this->db->row(
             "SELECT 
                 vpu.*,
+                vpu.chronicle_publish AS chronicle,
                 vp.publisher AS publisher,
                 pk.publickey,
                 vpc.name AS channel,
