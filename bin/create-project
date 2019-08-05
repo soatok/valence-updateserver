@@ -1,0 +1,43 @@
+#!/usr/bin/env php
+<?php
+declare(strict_types=1);
+namespace Soatok\Valence\CommandLine;
+
+
+require_once dirname(__DIR__) . '/autoload-cli.php';
+/**
+ * @var \Slim\Container $container
+ * @var \ParagonIE\EasyDB\EasyDB $db
+ */
+if ($argc < 3) {
+    echo 'Usage: create-project [publisher-name] [name]', PHP_EOL;
+    exit(0);
+}
+$publisher = $argv[1];
+$name = $argv[2];
+
+$db->beginTransaction();
+$pub = $db->exists("SELECT publisherid FROM valence_publishers WHERE name = ?", $publisher);
+if (empty($pub)) {
+    echo 'Publisher "', $publisher, '" not found.', PHP_EOL;
+    exit(2);
+}
+
+if ($db->exists("SELECT count(*) FROM valence_projects WHERE name = ?", $name)) {
+    echo 'Project name is already taken: ', $name, PHP_EOL;
+    exit(3);
+}
+
+$db->insert(
+    'valence_projects',
+    [
+        'name' => $name,
+        'publisherid' => $pub
+    ]
+);
+if (!$db->commit()) {
+    echo 'Database error.', PHP_EOL;
+    exit(1);
+}
+
+echo 'Project created successfully!', PHP_EOL;
