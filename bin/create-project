@@ -32,7 +32,7 @@ $db->insert(
     'valence_projects',
     [
         'name' => $name,
-        'publisherid' => $pub
+        'owner' => $pub
     ]
 );
 if (!$db->commit()) {
