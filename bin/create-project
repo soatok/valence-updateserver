@@ -17,7 +17,7 @@ $publisher = $argv[1];
 $name = $argv[2];
 
 $db->beginTransaction();
-$pub = $db->exists("SELECT publisherid FROM valence_publishers WHERE name = ?", $publisher);
+$pub = $db->cell("SELECT publisherid FROM valence_publishers WHERE name = ?", $publisher);
 if (empty($pub)) {
     echo 'Publisher "', $publisher, '" not found.', PHP_EOL;
     exit(2);
